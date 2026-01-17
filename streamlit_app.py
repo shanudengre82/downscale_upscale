@@ -1,53 +1,53 @@
 import streamlit as st
-import requests
-import os
-import sys
-import subprocess
-import time
 import io
+import requests
 from PIL import Image, ImageOps
 from streamlit_image_comparison import image_comparison
+import math
+import subprocess
+import os
+import sys
+import time
 
-# --- 1. Environment Detection & Backend Starter ---
-BACKEND_URL = "http://127.0.0.1:8000"
-
-
-def start_backend_sidecar():
-    try:
-        # Check if backend is already alive
-        requests.get(f"{BACKEND_URL}/view_storage", timeout=1)
-    except:
-        # Start backend as a sidecar process
-        st.info("Initializing AI Engine...")
-        py_exe = sys.executable
-        env = os.environ.copy()
-        env["PYTHONPATH"] = os.getcwd()
-
-        # Start FastAPI in background
-        subprocess.Popen(
-            [
-                py_exe,
-                "-m",
-                "uvicorn",
-                "backend.main:app",
-                "--host",
-                "127.0.0.1",
-                "--port",
-                "8000",
-            ],
-            env=env,
-        )
-        time.sleep(5)  # Warm up
-
-
-start_backend_sidecar()
-
-# --- 2. Main App Interface ---
 st.set_page_config(page_title="AI Storage & Upscale", layout="wide")
 st.title("🖼️ AI Image Optimizer")
 
 BACKEND_URL = "http://127.0.0.1:8000"
 MIN_RES = 200 
+
+def start_backend():
+    """Starts the FastAPI backend as a background process."""
+    if "backend_started" not in st.session_state:
+        # Check if backend is already responding (prevents multiple spawns)
+        try:
+            response = requests.get("http://127.0.0.1:8000/docs", timeout=1)
+            if response.status_code == 200:
+                st.session_state.backend_started = True
+                return
+        except:
+            pass
+
+        st.info("🚀 Starting AI Backend...")
+        python_exe = sys.executable
+        # Use absolute path to the backend main file
+        backend_path = os.path.join(os.getcwd(), "backend", "main.py")
+        
+        env = os.environ.copy()
+        env["PYTHONPATH"] = os.getcwd()
+
+        subprocess.Popen([
+            python_exe, "-m", "uvicorn", "backend.main:app",
+            "--host", "127.0.0.1",
+            "--port", "8000"
+        ], env=env)
+        
+        # Wait for backend to warm up
+        time.sleep(5)
+        st.session_state.backend_started = True
+        st.rerun()
+
+# Call this at the very beginning of your app
+start_backend()
 
 uploaded_file = st.file_uploader("Upload Image", type=["jpg", "png", "webp"])
 
