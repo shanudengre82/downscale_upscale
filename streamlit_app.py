@@ -191,13 +191,13 @@ if uploaded_file:
                     with tab2:
                         if shrunk_url:
                             st.write(f"### Shrunk Image: {data['shrunk_res']}")
-                            st.image(shrunk_url, use_container_width=True)
+                            st.image(shrunk_url, width='stretch')
                         else:
                             st.warning("No shrunk version found.")
                     
                     with tab3:
                         if orig_url:
                             st.write(f"### Original Saved Image: {data['orig_res']}")
-                            st.image(orig_url, use_container_width=True)
+                            st.image(orig_url, width='stretch')
                 else:
                     st.error("Make sure to run 'Shrink' first to save and rotate the image on the server.")
