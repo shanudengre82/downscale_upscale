@@ -7,6 +7,7 @@ import math
 import subprocess
 import os
 import sys
+import time
 
 st.set_page_config(page_title="AI Storage & Upscale", layout="wide")
 st.title("🖼️ AI Image Optimizer")
